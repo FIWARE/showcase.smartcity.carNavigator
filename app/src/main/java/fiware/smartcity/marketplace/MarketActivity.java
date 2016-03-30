@@ -56,10 +56,12 @@ public class MarketActivity {
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
                 webView.removeAllViews();
-                webView.scrollTo(0,0);
+                webView.scrollTo(0, 0);
 
                 WebView newView = new WebView(context);
+                newView.getSettings().setJavaScriptEnabled(true);
                 newView.setWebViewClient(new WebViewClient());
+
                 // Create dynamically a new view
                 newView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
