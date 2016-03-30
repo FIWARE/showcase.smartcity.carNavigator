@@ -3,12 +3,16 @@ package fiware.smartcity.marketplace;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.transition.Scene;
 import android.transition.TransitionManager;
 import android.view.ViewGroup;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.RelativeLayout;
 
 import fiware.smartcity.Application;
 import fiware.smartcity.MainActivity;
@@ -23,13 +27,14 @@ public class MarketActivity {
     private static Activity activity;
 
     private Drawable x, y;
+    private WebView webView;
 
     public MarketActivity(Context ctx) {
         context = ctx;
         activity = Application.mainActivity;
 
         x = activity.getResources().getDrawable(R.drawable.clear);
-        x.setBounds(0, 0,50, 50);
+        x.setBounds(0, 0, 50, 50);
 
         y = activity.getResources().getDrawable(R.drawable.search);
         y.setBounds(0, 0, 50, 50);
@@ -44,10 +49,34 @@ public class MarketActivity {
 
         TransitionManager.go(scene1);
 
-        WebView webView = (WebView) activity.findViewById(R.id.market);
-        webView.loadUrl("https://demo-mwc.conwet.com/");
+        // Create a web view containing the Business API Ecosystem web page
+        webView = (WebView) activity.findViewById(R.id.market);
+        webView.setWebChromeClient(new WebChromeClient() {
+            // Handle window.open requests in order to support PayPal redirection
+            @Override
+            public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                webView.removeAllViews();
+                webView.scrollTo(0,0);
+
+                WebView newView = new WebView(context);
+                newView.setWebViewClient(new WebViewClient());
+                // Create dynamically a new view
+                newView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+                webView.addView(newView);
+
+                WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+                transport.setWebView(newView);
+                resultMsg.sendToTarget();
+                return true;
+            }
+        });
+
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+        webView.getSettings().setSupportMultipleWindows(true);
+
+        webView.loadUrl("https://demo-mwc.conwet.com/");
 
         setupHeader();
     }
