@@ -51,6 +51,8 @@ public class MarketActivity {
 
         // Create a web view containing the Business API Ecosystem web page
         webView = (WebView) activity.findViewById(R.id.market);
+
+        webView.setWebViewClient(new WebViewClient());
         webView.setWebChromeClient(new WebChromeClient() {
             // Handle window.open requests in order to support PayPal redirection
             @Override
@@ -60,11 +62,18 @@ public class MarketActivity {
 
                 WebView newView = new WebView(context);
                 newView.getSettings().setJavaScriptEnabled(true);
+
                 newView.setWebViewClient(new WebViewClient());
+                newView.setWebChromeClient(new WebChromeClient() {
+                    @Override
+                    public void onCloseWindow(WebView view) {
+                        // Remove the new view when the window is closed in order to return to the marketplace
+                        ((WebView) view.getParent()).removeView(view);
+                    }
+                });
 
                 // Create dynamically a new view
                 newView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
                 webView.addView(newView);
 
                 WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
