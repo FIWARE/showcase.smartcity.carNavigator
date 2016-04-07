@@ -24,7 +24,7 @@
             app:showAsAction="never" />
 
         <item android:id="@+id/action_market"
-            android:title="Acquire Data"
+            android:title="Data Marketplace"
             android:orderInCategory="400"
             app:showAsAction="never" />
     </group>

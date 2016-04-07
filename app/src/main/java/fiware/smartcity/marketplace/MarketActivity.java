@@ -100,7 +100,7 @@ public class MarketActivity {
         Toolbar myToolbar = (Toolbar) activity.findViewById(R.id.my_toolbar);
         ((AppCompatActivity)activity).setSupportActionBar(myToolbar);
 
-        ((AppCompatActivity)activity).getSupportActionBar().setTitle("Marketplace");
+        ((AppCompatActivity)activity).getSupportActionBar().setTitle("Data Marketplace");
         ((AppCompatActivity)activity).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 }
