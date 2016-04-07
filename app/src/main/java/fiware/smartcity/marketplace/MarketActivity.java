@@ -8,10 +8,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.transition.Scene;
 import android.transition.TransitionManager;
+import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
 import fiware.smartcity.Application;
@@ -28,6 +30,14 @@ public class MarketActivity {
 
     private Drawable x, y;
     private WebView webView;
+    private ProgressBar mPbar;
+
+    private class SpinnerClient extends WebViewClient {
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            mPbar.setVisibility(View.GONE);
+        }
+    }
 
     public MarketActivity(Context ctx) {
         context = ctx;
@@ -52,18 +62,23 @@ public class MarketActivity {
         // Create a web view containing the Business API Ecosystem web page
         webView = (WebView) activity.findViewById(R.id.market);
 
-        webView.setWebViewClient(new WebViewClient());
+        mPbar = (ProgressBar) activity.findViewById(R.id.spinner);
+        mPbar.setVisibility(View.VISIBLE);
+        webView.setWebViewClient(new SpinnerClient());
         webView.setWebChromeClient(new WebChromeClient() {
             // Handle window.open requests in order to support PayPal redirection
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                mPbar.setVisibility(View.VISIBLE);
+
                 webView.removeAllViews();
                 webView.scrollTo(0, 0);
 
                 WebView newView = new WebView(context);
                 newView.getSettings().setJavaScriptEnabled(true);
 
-                newView.setWebViewClient(new WebViewClient());
+                newView.setWebViewClient(new SpinnerClient());
+
                 newView.setWebChromeClient(new WebChromeClient() {
                     @Override
                     public void onCloseWindow(WebView view) {
