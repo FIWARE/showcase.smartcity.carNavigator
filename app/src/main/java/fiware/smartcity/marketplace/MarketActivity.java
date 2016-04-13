@@ -2,14 +2,17 @@ package fiware.smartcity.marketplace;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.transition.Scene;
 import android.transition.TransitionManager;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -36,6 +39,30 @@ public class MarketActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             mPbar.setVisibility(View.GONE);
+        }
+    }
+
+    private class WebAppTokenInterface {
+        Context mContext;
+
+        WebAppTokenInterface(Context c) {
+            mContext = c;
+        }
+
+        /**
+         * Save the username and the access token of the user loged in the Marketplace
+         * This method is called from the JavaScript code of the Marketplace
+         */
+        @JavascriptInterface
+        public void saveToken(String username, String token) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+
+            SharedPreferences.Editor prefsEditor = prefs.edit();
+            prefsEditor.putString("user", username);
+            prefsEditor.putString("token", token);
+
+            prefsEditor.commit();
+
         }
     }
 
@@ -101,6 +128,7 @@ public class MarketActivity {
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         webView.getSettings().setSupportMultipleWindows(true);
+        webView.addJavascriptInterface(new WebAppTokenInterface(activity), "Android");
 
         webView.loadUrl("https://demo-mwc.conwet.com/");
 
