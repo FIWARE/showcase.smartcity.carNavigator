@@ -98,4 +98,6 @@ public class Application {
     public static boolean isSpeaking = false;
 
     public static String LAST_CITY_VISITED = "Last_City";
+
+    public static String MARKET_URL = "https://demo-mwc.conwet.com/";
 }

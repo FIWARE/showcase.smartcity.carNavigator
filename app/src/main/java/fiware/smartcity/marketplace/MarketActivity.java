@@ -124,7 +124,7 @@ public class MarketActivity {
         webView.getSettings().setSupportMultipleWindows(true);
         webView.addJavascriptInterface(new WebAppTokenInterface(activity), "Android");
 
-        webView.loadUrl("https://demo-mwc.conwet.com/");
+        webView.loadUrl(Application.MARKET_URL);
 
         setupHeader();
     }
