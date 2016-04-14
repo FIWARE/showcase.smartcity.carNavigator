@@ -37,6 +37,7 @@ public class MarketActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             mPbar.setVisibility(View.GONE);
+            webView.setVisibility(View.VISIBLE);
         }
     }
 
@@ -89,6 +90,7 @@ public class MarketActivity {
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
                 mPbar.setVisibility(View.VISIBLE);
+                webView.setVisibility(View.GONE);
 
                 webView.removeAllViews();
                 webView.scrollTo(0, 0);
