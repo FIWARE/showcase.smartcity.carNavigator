@@ -24,7 +24,7 @@ import fiware.smartcity.MainActivity;
 import fiware.smartcity.R;
 
 /**
- * Created by francisco on 29/03/16.
+ * Data Marketplace View
  */
 public class MarketActivity {
     private Context context;
