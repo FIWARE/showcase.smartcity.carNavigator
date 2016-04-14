@@ -88,7 +88,8 @@ public class MarketActivity {
         webView.setWebChromeClient(new WebChromeClient() {
             // Handle window.open requests in order to support PayPal redirection
             @Override
-            public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+            public boolean onCreateWindow(
+                    WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
                 mPbar.setVisibility(View.VISIBLE);
                 webView.setVisibility(View.GONE);
 
@@ -109,7 +110,11 @@ public class MarketActivity {
                 });
 
                 // Create dynamically a new view
-                newView.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                newView.setLayoutParams(
+                        new RelativeLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.MATCH_PARENT));
+
                 webView.addView(newView);
 
                 WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
