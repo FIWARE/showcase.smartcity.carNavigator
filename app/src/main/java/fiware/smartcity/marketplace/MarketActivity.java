@@ -57,8 +57,8 @@ public class MarketActivity {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
 
             SharedPreferences.Editor prefsEditor = prefs.edit();
-            prefsEditor.putString("user", username);
-            prefsEditor.putString("token", token);
+            prefsEditor.putString(Application.BF_USER, username);
+            prefsEditor.putString(Application.BF_TOKEN, token);
 
             prefsEditor.commit();
 
