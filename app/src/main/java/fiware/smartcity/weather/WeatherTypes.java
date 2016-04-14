@@ -47,7 +47,8 @@ public class WeatherTypes {
             "Nuboso",
             "Muy nuboso",
             "Cubierto",
-            "Muy nuboso con lluvia escasa"
+            "Muy nuboso con lluvia escasa",
+            "Nuboso con lluvia escasa"
     };
 
     public static String[] ICONS_ES = new String [] {
@@ -64,6 +65,7 @@ public class WeatherTypes {
             "weather_overcast",
             "weather_overcast",
             "weather_overcast",
+            "weather_drizzle",
             "weather_drizzle"
     };
 

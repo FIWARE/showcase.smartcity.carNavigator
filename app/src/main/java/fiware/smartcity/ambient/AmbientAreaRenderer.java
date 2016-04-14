@@ -155,7 +155,7 @@ public class AmbientAreaRenderer implements CityDataListener {
 
     private void getDataFromSensors() {
         CityDataRequest req = new CityDataRequest();
-        req.geometry = "Polygon";
+        req.geometry = "polygon";
         req.polygon = polygon;
         req.types = Arrays.asList(Application.AMBIENT_OBSERVED_TYPE);
 

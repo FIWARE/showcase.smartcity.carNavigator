@@ -100,4 +100,7 @@ public class Application {
     public static String LAST_CITY_VISITED = "Last_City";
 
     public static String MARKET_URL = "https://demo-mwc.conwet.com/";
+
+    public static String BF_TOKEN = "bf_token";
+    public static String BF_USER  = "bf_user";
 }

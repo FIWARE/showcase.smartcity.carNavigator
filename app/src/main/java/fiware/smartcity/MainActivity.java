@@ -2,6 +2,7 @@ package fiware.smartcity;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -9,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.support.v7.app.AppCompatActivity;
@@ -917,6 +919,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
             reqData.types.add(Application.PARKING_RESTRICTION_TYPE);
 
+            reqData.token = getUserToken();
+
             Log.d(Application.TAG, "Going to retrieve parking data ...");
             CityDataRetriever retriever = new CityDataRetriever();
             retriever.setListener(new CityDataListener() {
@@ -1205,9 +1209,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             List<String> types = Arrays.asList(
                     Application.PARKING_TYPE,
-                    Application.AMBIENT_OBSERVED_TYPE,
-                    Application.GAS_STATION_TYPE,
-                    Application.GARAGE_TYPE
+                    Application.AMBIENT_OBSERVED_TYPE
             );
             executeDataRequest(types, Application.DEFAULT_RADIUS, loc);
         }
@@ -1232,8 +1234,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         });
 
+        reqData.token = getUserToken();
+
         pendingSmartCityRequest = true;
         retriever.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, reqData);
+    }
+
+    private String getUserToken() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        return prefs.getString(Application.BF_TOKEN, "");
     }
 
     private void doTerminateSimulation() {

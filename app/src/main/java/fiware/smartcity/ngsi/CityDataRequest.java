@@ -16,4 +16,5 @@ public class CityDataRequest {
     public int radius = -1;
     public String geometry;
     public GeoPolygon polygon;
+    public String token;
 }

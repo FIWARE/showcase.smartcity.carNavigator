@@ -84,25 +84,7 @@ public class CityDataRetriever extends AsyncTask<CityDataRequest, Integer, Map<S
                 ent.type = obj.getString("type");
                 ent.attributes = new HashMap<String, Object>();
 
-                JSONObject location  = null;
-                try {
-                    location = obj.getJSONObject("centroid");
-                }
-                catch(JSONException jse) {
-                    try {
-                        location = obj.getJSONObject("location");
-                    }
-                    catch(JSONException jse2) { }
-                }
-
-                // There could be entities (namely weather entities) without location
-                if (location != null) {
-                    String locationValue = location.getString("value");
-                    String[] coordinates = locationValue.split(",");
-
-                    ent.location = new double[]{Double.parseDouble(coordinates[0]),
-                            Double.parseDouble(coordinates[1])};
-                }
+                fillLocation(obj, ent);
 
                 fillAttributes(obj, ent.type, ent.attributes);
 
@@ -130,6 +112,41 @@ public class CityDataRetriever extends AsyncTask<CityDataRequest, Integer, Map<S
         out.put(Application.RESULT_SET_KEY, resultSet);
 
         return out;
+    }
+
+    private void fillLocation(JSONObject obj, Entity ent) throws JSONException {
+        JSONObject location  = null;
+        String locValue = null;
+        try {
+            location = obj.getJSONObject("centroid");
+        }
+        catch(JSONException jse) {
+            try {
+                locValue = obj.getString("centroid");
+            }
+            catch(JSONException jse2) {
+                try {
+                    location = obj.getJSONObject("location");
+                }
+                catch(JSONException jse3) {
+                    try {
+                        locValue = obj.getString("location");
+                    }
+                    catch(JSONException jse4) { }
+                }
+            }
+        }
+
+        // There could be entities (namely weather entities) without location
+        if (location != null) {
+            locValue = location.getString("value");
+        }
+        if (locValue != null) {
+            String[] coordinates = locValue.split(",");
+
+            ent.location = new double[]{Double.parseDouble(coordinates[0]),
+                    Double.parseDouble(coordinates[1])};
+        }
     }
 
     private void fillAmbientObserved(JSONObject obj, String type, Map<String, Object> attrs) throws Exception {
@@ -306,12 +323,15 @@ public class CityDataRetriever extends AsyncTask<CityDataRequest, Integer, Map<S
     private String createRequestURL(CityDataRequest req) {
         String geometry = req.geometry;
         if(geometry == null) {
-            geometry = "Circle";
+            geometry = "point";
         }
 
-        String radiusStr = "";
+        String geoRelStr;
         if(req.radius != -1) {
-            radiusStr = "&radius=" + req.radius;
+            geoRelStr = "&georel=near;maxDistance:" + req.radius;
+        }
+        else {
+            geoRelStr = "&georel=coveredBy";
         }
 
         String coords = "";
@@ -327,8 +347,14 @@ public class CityDataRetriever extends AsyncTask<CityDataRequest, Integer, Map<S
             coords = coords.substring(0,coords.length() - 1);
         }
 
-        return SERVICE_URL + "?" + "coords=" + coords
-                + radiusStr + "&type=" + getTypes(req.types) + "&geometry=" + geometry;
+        String out = SERVICE_URL + "?" + "coords=" + coords
+                + geoRelStr + "&type=" + getTypes(req.types) + "&geometry=" + geometry;
+
+        if (req.token != null && req.token.length() > 0) {
+            out += "&token=" + req.token;
+        }
+
+        return out;
     }
 
 
