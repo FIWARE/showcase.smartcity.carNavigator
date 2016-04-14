@@ -3,7 +3,6 @@ package fiware.smartcity.marketplace;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -31,7 +30,6 @@ public class MarketActivity {
 
     private static Activity activity;
 
-    private Drawable x, y;
     private WebView webView;
     private ProgressBar mPbar;
 
@@ -69,12 +67,6 @@ public class MarketActivity {
     public MarketActivity(Context ctx) {
         context = ctx;
         activity = Application.mainActivity;
-
-        x = activity.getResources().getDrawable(R.drawable.clear);
-        x.setBounds(0, 0, 50, 50);
-
-        y = activity.getResources().getDrawable(R.drawable.search);
-        y.setBounds(0, 0, 50, 50);
     }
 
     public void start() {
