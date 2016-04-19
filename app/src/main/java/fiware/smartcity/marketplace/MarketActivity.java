@@ -42,26 +42,34 @@ public class MarketActivity {
     }
 
     private class WebAppTokenInterface {
-        Context mContext;
+        SharedPreferences.Editor prefsEditor;
 
         WebAppTokenInterface(Context c) {
-            mContext = c;
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(c);
+            prefsEditor = prefs.edit();
         }
 
         /**
-         * Save the username and the access token of the user loged in the Marketplace
+         * Save the username and the access token of the user logged in the Marketplace
          * This method is called from the JavaScript code of the Marketplace
          */
         @JavascriptInterface
         public void saveToken(String username, String token) {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-
-            SharedPreferences.Editor prefsEditor = prefs.edit();
             prefsEditor.putString(Application.BF_USER, username);
             prefsEditor.putString(Application.BF_TOKEN, token);
-
             prefsEditor.commit();
 
+        }
+
+        /**
+         * Remove the existing username and access token of the Marketplace user when
+         * she logs out. This method is called from the JavaScript code of the Marketplace
+         */
+        @JavascriptInterface
+        public void clearToken() {
+            prefsEditor.remove(Application.BF_USER);
+            prefsEditor.remove(Application.BF_TOKEN);
+            prefsEditor.commit();
         }
     }
 
