@@ -14,8 +14,7 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center">
+        android:layout_height="match_parent">
 
         <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
@@ -32,18 +31,29 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <ProgressBar
-            android:id="@+id/spinner"
-            android:layout_width="50dp"
-            android:layout_height="match_parent"
-            style="@android:style/Widget.ProgressBar.Large" />
-
-        <WebView
-            android:id="@+id/market"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            />
+            android:layout_height="match_parent">
+
+            <WebView
+                android:id="@+id/market"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <RelativeLayout
+                android:id="@+id/spinner"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:background="#80ffffff">
+
+                <ProgressBar
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent"
+                    style="@android:style/Widget.ProgressBar.Large" />
+            </RelativeLayout>
+        </FrameLayout>
 
     </LinearLayout>
 </RelativeLayout>
