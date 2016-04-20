@@ -48,11 +48,15 @@ public class MarketActivity {
     }
 
     private class WebAppTokenInterface {
-        SharedPreferences.Editor prefsEditor;
+        Context context;
 
         WebAppTokenInterface(Context c) {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(c);
-            prefsEditor = prefs.edit();
+            context = c;
+        }
+
+        private SharedPreferences.Editor openPreferences() {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            return prefs.edit();
         }
 
         /**
@@ -61,6 +65,7 @@ public class MarketActivity {
          */
         @JavascriptInterface
         public void saveToken(String username, String token) {
+            SharedPreferences.Editor prefsEditor = openPreferences();
             prefsEditor.putString(Application.BF_USER, username);
             prefsEditor.putString(Application.BF_TOKEN, token);
             prefsEditor.commit();
@@ -73,6 +78,7 @@ public class MarketActivity {
          */
         @JavascriptInterface
         public void clearToken() {
+            SharedPreferences.Editor prefsEditor = openPreferences();
             prefsEditor.remove(Application.BF_USER);
             prefsEditor.remove(Application.BF_TOKEN);
             prefsEditor.commit();
