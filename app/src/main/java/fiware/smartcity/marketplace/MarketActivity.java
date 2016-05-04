@@ -12,6 +12,7 @@ import android.transition.Scene;
 import android.transition.TransitionManager;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -82,6 +83,9 @@ public class MarketActivity {
             prefsEditor.remove(Application.BF_USER);
             prefsEditor.remove(Application.BF_TOKEN);
             prefsEditor.commit();
+
+            CookieManager.getInstance().removeAllCookies(null);
+            CookieManager.getInstance().flush();
         }
     }
 
@@ -102,6 +106,7 @@ public class MarketActivity {
         // Create a web view containing the Business API Ecosystem web page
         webView = (WebView) activity.findViewById(R.id.market);
         mPbar = (RelativeLayout) activity.findViewById(R.id.spinner);
+
 
         webView.setWebViewClient(new SpinnerClient());
         webView.setWebChromeClient(new WebChromeClient() {
