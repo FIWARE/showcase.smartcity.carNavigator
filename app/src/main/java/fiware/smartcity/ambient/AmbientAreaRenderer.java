@@ -171,7 +171,6 @@ public class AmbientAreaRenderer implements CityDataListener {
         getDataFromSensors();
     }
 
-
     private MapPolygon doRender(String targetColor) {
         MapPolygon ambientAreaPolygon = null;
 

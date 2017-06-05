@@ -40,6 +40,17 @@
                 android:layout_marginTop="@dimen/activity_vertical_margin"
                 android:layout_marginBottom="@dimen/activity_vertical_margin" />
 
+            <Switch
+                android:id="@+id/searchPoi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/light_blue"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Search Points of Interest"
+                android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                android:layout_marginRight="@dimen/activity_horizontal_margin"
+                android:layout_marginBottom="@dimen/activity_horizontal_margin" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -63,28 +74,63 @@
                 android:layout_marginBottom="@dimen/activity_vertical_margin">
             </AutoCompleteTextView>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Address"
-                android:textColor="@color/light_blue"
-                android:layout_gravity="center_horizontal|left"
-                android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                android:layout_marginRight="@dimen/activity_horizontal_margin" />
-
-            <AutoCompleteTextView
+            <LinearLayout
+                android:id="@+id/address"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPostalAddress"
-                android:ems="10"
-                android:hint="Enter Address"
-                android:id="@+id/editText2"
-                android:layout_gravity="center_horizontal"
+                android:orientation="vertical"
+                android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                android:layout_marginRight="@dimen/activity_horizontal_margin"
+                android:layout_marginBottom="@dimen/activity_vertical_margin">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Address"
+                    android:textColor="@color/light_blue"
+                    android:layout_gravity="center_horizontal|left"/>
+
+                <AutoCompleteTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPostalAddress"
+                    android:ems="10"
+                    android:hint="Enter Address"
+                    android:id="@+id/destAddr"
+                    android:layout_gravity="center_horizontal"
+                    android:tag="destAddress" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/pois"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:layout_marginLeft="@dimen/activity_horizontal_margin"
                 android:layout_marginRight="@dimen/activity_horizontal_margin"
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
-                android:tag="destAddress" />
+                android:visibility="gone" >
+
+                <TextView
+                    android:id="@+id/poiTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Point of Interest"
+                    android:textColor="@color/light_blue"
+                    android:layout_gravity="center_horizontal|left"/>
+
+                <AutoCompleteTextView
+                    android:id="@+id/destPoi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPostalAddress"
+                    android:ems="10"
+                    android:hint="Enter POI"
+                    android:layout_gravity="center_horizontal"
+                    android:tag="destPOI" />
+            </LinearLayout>
 
             <Button
                 android:layout_width="match_parent"

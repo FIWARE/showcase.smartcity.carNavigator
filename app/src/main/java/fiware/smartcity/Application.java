@@ -36,6 +36,9 @@ public class Application {
     // Average radius for Ambient areas
     public static int AMBIENT_AREA_RADIUS = 800;
 
+    // Average radius for POIs
+    public static int POIS_RADIUS = 10000;
+
     /* Every 250 meters we ask about changes on ambient area */
     public static int DISTANCE_FREQ_AMBIENT_AREA = 250;
 
@@ -48,6 +51,7 @@ public class Application {
     public static String WEATHER_FORECAST_TYPE = "WeatherForecast";
     public static String GAS_STATION_TYPE      = "GasStation";
     public static String GARAGE_TYPE           = "Garage";
+    public static String POI_TYPE              = "PointOfInterest";
 
     // It is used to mark any data type to be retrieved
     public static String ANY_ENTITY_TYPE =       "__any__";
@@ -105,6 +109,7 @@ public class Application {
     public static String LAST_CITY_VISITED = "Last_City";
     public static String LAST_ORIGIN = "Last_Origin";
     public static String LAST_DESTINATION = "Last_Destination";
+    public static String IS_POI_DESTINATION = "is_poi";
 
     public static String MARKET_URL = "https://demo-mwc.conwet.com/";
 

@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -24,11 +25,16 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.here.android.mpa.common.GeoCoordinate;
+import com.here.android.mpa.common.GeoPosition;
 import com.here.android.mpa.routing.RouteManager;
 import com.here.android.mpa.routing.RouteOptions;
 import com.here.android.mpa.routing.RoutePlan;
@@ -46,14 +52,21 @@ import com.here.android.mpa.search.Location;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import fiware.smartcity.Alert;
 import fiware.smartcity.Application;
 import fiware.smartcity.MainActivity;
 import fiware.smartcity.R;
+import fiware.smartcity.ngsi.CityDataListener;
+import fiware.smartcity.ngsi.CityDataRequest;
+import fiware.smartcity.ngsi.CityDataRetriever;
+import fiware.smartcity.ngsi.Entity;
 
 /**
  *  Route Wizard
@@ -65,13 +78,16 @@ public class RouteActivity implements LocationListener {
 
     private ProgressDialog progress, locationProgress;
 
-    private AutoCompleteTextView origin, destination, city, originCity;
+    private AutoCompleteTextView origin, destination, poi, city, originCity;
     private Button nextButton;
+    private boolean isPoiDest = false;
 
-    private ArrayAdapter<String> originAdapter;
-    private ArrayAdapter<String> destinationAdapter;
-    private List<String> optionList1 = new ArrayList<String>();
-    private List<String> optionList2 = new ArrayList<String>();
+    private List<String> optionList1 = new ArrayList<>();
+    private List<String> optionList2 = new ArrayList<>();
+
+    private List<String> poiList = new ArrayList<>();
+    private Map<String, double[]> poiCoords = new HashMap<>();
+
     private static String[] CITIES = new String[] {
             "Valencia",
             "Barcelona",
@@ -86,7 +102,7 @@ public class RouteActivity implements LocationListener {
             { 41.38561, 2.16873 },
             { 43.4666, -3.79998 },
             { 37.3879, -6.00198 },
-            { 36.71667, -4.41668 },
+            { 36.7585406, -4.3971722 },
             { 40.42028, -3.70578 },
             { 43.3712591, -8.4188010}
     };
@@ -108,10 +124,7 @@ public class RouteActivity implements LocationListener {
 
     private static Activity activity;
 
-    private Context context;
-
     public RouteActivity(Context ctx) {
-        context = ctx;
         activity = Application.mainActivity;
 
         x = activity.getResources().getDrawable(R.drawable.clear);
@@ -146,6 +159,7 @@ public class RouteActivity implements LocationListener {
         if(routeData.originCity.length() > 0) {
             originCity.setText(routeData.originCity);
         }
+
         if(routeData.origin.length() > 0) {
             origin.setText(routeData.origin);
         }
@@ -162,6 +176,19 @@ public class RouteActivity implements LocationListener {
 
         setupNextEventHandler();
         setupHeader(2);
+
+        SharedPreferences prefs = Application.mainActivity.getPreferences(Context.MODE_WORLD_READABLE);
+        String lastCity = prefs.getString(Application.LAST_CITY_VISITED, Application.EMPTY_STR);
+
+        if (routeData.originCity.equals(lastCity)) {
+            if (routeData.isPoi == null) {
+                // Get saved value if route data is not initialized
+                isPoiDest = prefs.getBoolean(Application.IS_POI_DESTINATION, false);
+            } else {
+                isPoiDest = routeData.isPoi;
+            }
+        }
+
         setAutoCompleteHandlerDestination();
 
         // By default dest city equal to the origin city
@@ -170,13 +197,20 @@ public class RouteActivity implements LocationListener {
             routeData.city = routeData.originCity;
         }
 
-        SharedPreferences prefs = Application.mainActivity.getPreferences(Context.MODE_WORLD_READABLE);
+        if (routeData.originCity.equals(lastCity)) {
+            AutoCompleteTextView lastDestText = isPoiDest ? poi: destination;
+            String lastDes;
 
-        if (routeData.originCity.equals(prefs.getString(Application.LAST_CITY_VISITED,
-                Application.EMPTY_STR))) {
-            destination.setText(prefs.getString(Application.LAST_DESTINATION,
-                    Application.EMPTY_STR));
+            if (routeData.destination.length() > 0) {
+                lastDes = routeData.destination;
+            } else {
+                lastDes = prefs.getString(Application.LAST_DESTINATION,
+                        Application.EMPTY_STR);
+            }
+
+            lastDestText.setText(lastDes);
         }
+        setupPOISwitchEventHandler();
     }
 
     private void goToParkingStep() {
@@ -223,6 +257,35 @@ public class RouteActivity implements LocationListener {
         });
     }
 
+    private void setAddressVisibility() {
+        LinearLayout address = (LinearLayout) Application.mainActivity.findViewById(R.id.address);
+        LinearLayout pois = (LinearLayout) Application.mainActivity.findViewById(R.id.pois);
+
+        if (isPoiDest) {
+            // If is Checked hide address and show POIs
+            address.setVisibility(View.GONE);
+            pois.setVisibility(View.VISIBLE);
+        } else {
+            // Hide POIs and show address
+            address.setVisibility(View.VISIBLE);
+            pois.setVisibility(View.GONE);
+        }
+    }
+
+    private void setupPOISwitchEventHandler() {
+        Switch searchPois = (Switch) Application.mainActivity.findViewById(R.id.searchPoi);
+        searchPois.setChecked(isPoiDest);
+        setAddressVisibility();
+
+        searchPois.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                isPoiDest = isChecked;
+                setAddressVisibility();
+            }
+        });
+    }
+
     private AdapterView.OnItemClickListener itemClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick (AdapterView<?> parent, View view, int position, long id) {
@@ -249,36 +312,33 @@ public class RouteActivity implements LocationListener {
         vehicle.setText(routeData.vehicle);
     }
 
+    private TextWatcher buildTextWatcher(AutoCompleteTextView textView, ArrayAdapter<String> addressAdapter, boolean isPoi) {
+        return isPoi ? new PoiTextWatcher(textView, addressAdapter) : new MyTextWatcher(textView, addressAdapter);
+    }
+
+    private void setAutocompleteHandler(AutoCompleteTextView textView, List<String> optionList, String text, boolean isPoi) {
+        ArrayAdapter<String> addressAdapter = new ArrayAdapter<String>(activity,
+                android.R.layout.simple_dropdown_item_1line, optionList);
+
+        TextWatcher watcher = buildTextWatcher(textView, addressAdapter, isPoi);
+
+        textView.setAdapter(addressAdapter);
+        textView.addTextChangedListener(watcher);
+
+        textView.setCompoundDrawables(y, null, null, null);
+        textView.setOnTouchListener(new MyTouchListener(textView));
+
+        textView.setText(text);
+        textView.setOnItemClickListener(itemClickListener);
+    }
+
     private void setAutoCompleteHandlerOrigin() {
         origin = (AutoCompleteTextView)activity.findViewById(R.id.editText);
         originCity = (AutoCompleteTextView)activity.findViewById(R.id.originCityInput);
 
-        originAdapter = new ArrayAdapter<String>(activity,
-                android.R.layout.simple_dropdown_item_1line, optionList1);
-        origin.setAdapter(originAdapter);
-        origin.addTextChangedListener(new MyTextWatcher(origin, originAdapter));
 
-        origin.setCompoundDrawables(y, null, null, null);
-        origin.setOnTouchListener(new MyTouchListener(origin));
-
-        origin.setText(routeData.origin);
-
-        originCity.setCompoundDrawables(y, null, null, null);
-        ArrayAdapter originCityAdapter = new ArrayAdapter<String>(activity,
-                android.R.layout.simple_dropdown_item_1line, cityList);
-        originCity.setAdapter(originCityAdapter);
-        originCity.setOnTouchListener(new MyTouchListener(originCity));
-        originCity.addTextChangedListener(new MyTextWatcher(originCity, originCityAdapter));
-
-        originCity.setText(routeData.originCity);
-
-        origin.setOnItemClickListener(itemClickListener);
-
-        if (routeData.originCity.equals("")) {
-            // originCity.requestFocus();
-        }
-
-        originCity.setOnItemClickListener(itemClickListener);
+        setAutocompleteHandler(origin, optionList1, routeData.origin, false);
+        setAutocompleteHandler(originCity, cityList, routeData.originCity, false);
 
         ((ImageButton) activity.findViewById(R.id.currentLocButton)).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -291,35 +351,13 @@ public class RouteActivity implements LocationListener {
     }
 
     private void setAutoCompleteHandlerDestination() {
-        destination = (AutoCompleteTextView)activity.findViewById(R.id.editText2);
-        destinationAdapter = new ArrayAdapter<String>(activity,
-                android.R.layout.simple_dropdown_item_1line, optionList2);
-        destination.setAdapter(destinationAdapter);
-        destination.addTextChangedListener(new MyTextWatcher(destination, destinationAdapter));
-
-        destination.setCompoundDrawables(y, null, null, null);
-        destination.setOnTouchListener(new MyTouchListener(destination));
-
-        destination.setOnItemClickListener(itemClickListener);
-
+        destination = (AutoCompleteTextView)activity.findViewById(R.id.destAddr);
         city = (AutoCompleteTextView)activity.findViewById(R.id.cityInput);
-        ArrayAdapter cityAdapter = new ArrayAdapter<String>(activity,
-                android.R.layout.simple_dropdown_item_1line, cityList);
-        city.setAdapter(cityAdapter);
+        poi = (AutoCompleteTextView)activity.findViewById(R.id.destPoi);
 
-        city.setCompoundDrawables(y, null, null, null);
-        city.setOnTouchListener(new MyTouchListener(city));
-        city.addTextChangedListener(new MyTextWatcher(city, cityAdapter));
-
-        city.setOnItemClickListener(itemClickListener);
-
-        city.setText(routeData.city);
-        destination.setText(routeData.destination);
-
-        /*
-        if (routeData.city.equals("")) {
-            city.requestFocus();
-        } */
+        setAutocompleteHandler(destination, optionList2, isPoiDest ? "" : routeData.destination, false);
+        setAutocompleteHandler(city, cityList, routeData.city, false);
+        setAutocompleteHandler(poi, poiList, isPoiDest ? routeData.destination : "", true);
 
         checkNextButton(null);
     }
@@ -331,7 +369,8 @@ public class RouteActivity implements LocationListener {
         }
         else if(currentStep.equals("Destination")) {
             routeData.city = city.getText().toString();
-            routeData.destination = destination.getText().toString();
+            routeData.destination = isPoiDest ? poi.getText().toString(): destination.getText().toString();
+            routeData.isPoi = isPoiDest;
             currentStep = "Origin";
             goToOriginStep();
         }
@@ -351,7 +390,8 @@ public class RouteActivity implements LocationListener {
             goToDestinationStep();
         }
         else if(currentStep.equals("Destination")) {
-            routeData.destination = destination.getText().toString();
+            routeData.destination = isPoiDest ? poi.getText().toString(): destination.getText().toString();
+            routeData.isPoi = isPoiDest;
             routeData.city = city.getText().toString();
             currentStep = "Parking";
             goToParkingStep();
@@ -544,8 +584,12 @@ public class RouteActivity implements LocationListener {
     private void calculateRoute() {
         SharedPreferences.Editor edit = Application.mainActivity.
                                     getPreferences(Activity.MODE_WORLD_WRITEABLE).edit();
+
         edit.putString(Application.LAST_CITY_VISITED, routeData.city);
         edit.putString(Application.LAST_ORIGIN, routeData.origin);
+
+
+        edit.putBoolean(Application.IS_POI_DESTINATION, routeData.isPoi);
         edit.putString(Application.LAST_DESTINATION, routeData.destination);
 
         edit.commit();
@@ -560,24 +604,42 @@ public class RouteActivity implements LocationListener {
             public void onCompleted(GeoCoordinate coords, ErrorCode errorCode) {
                 if (errorCode == ErrorCode.NONE) {
                     routeData.originCoordinates = coords;
-                    String destinationStr = routeData.destination;
-                    geoCodeLocation(destinationStr, destCoordinates, new ResultListener<GeoCoordinate>() {
-                        @Override
-                        public void onCompleted(GeoCoordinate geoCoordinate, ErrorCode errorCode) {
-                            if(errorCode == ErrorCode.NONE) {
-                                routeData.destinationCoordinates = geoCoordinate;
-                                if (routeData.originCoordinates != null && routeData.destinationCoordinates != null) {
-                                    doCalculateRoute(routeData.originCoordinates, routeData.destinationCoordinates);
+
+                    if (!routeData.isPoi) {
+                        // Use the provided address to calculate destination coordinates
+                        String destinationStr = routeData.destination;
+                        geoCodeLocation(destinationStr, destCoordinates, new ResultListener<GeoCoordinate>() {
+                            @Override
+                            public void onCompleted(GeoCoordinate geoCoordinate, ErrorCode errorCode) {
+                                if(errorCode == ErrorCode.NONE) {
+
+                                    routeData.destinationCoordinates = geoCoordinate;
+                                    if (routeData.originCoordinates != null && routeData.destinationCoordinates != null) {
+                                        doCalculateRoute(routeData.originCoordinates, routeData.destinationCoordinates);
+                                    } else {
+                                        notifyErrorToUI();
+                                    }
                                 }
                                 else {
                                     notifyErrorToUI();
                                 }
                             }
-                            else {
+                        });
+                    } else {
+                        // As the detination is a POI the destination coordinartes are already known
+                        double[] destCoords = poiCoords.get(routeData.destination);
+                        if (destCoords != null) {
+                            routeData.destinationCoordinates =  new GeoCoordinate(destCoords[0], destCoords[1]);
+
+                            if (routeData.originCoordinates != null && routeData.destinationCoordinates != null) {
+                                doCalculateRoute(routeData.originCoordinates, routeData.destinationCoordinates);
+                            } else {
                                 notifyErrorToUI();
                             }
+                        } else {
+                            notifyErrorToUI();
                         }
-                    });
+                    }
                 }
                 else {
                     notifyErrorToUI();
@@ -604,7 +666,9 @@ public class RouteActivity implements LocationListener {
             }
         }
         else if(currentStep.equals("Destination")) {
-            if(city.getText().length() > 0 && destination.getText().length() > 0) {
+            int destLength = isPoiDest ? poi.getText().length() : destination.getText().length();
+
+            if(city.getText().length() > 0 && destLength > 0) {
                 nextButton.setEnabled(true);
             }
             else {
@@ -613,9 +677,11 @@ public class RouteActivity implements LocationListener {
 
             if(city.getText().length() == 0 && destination.getText().length() > 0) {
                 destination.setText("");
+                poi.setText("");
             }
             if(view != null && view.getId() == R.id.cityInput) {
                 destination.setText("");
+                poi.setText("");
             }
         }
     }
@@ -630,6 +696,91 @@ public class RouteActivity implements LocationListener {
         }
 
         return geoCoordinates;
+    }
+
+    private class PoiTextWatcher implements TextWatcher, CityDataListener {
+        private AutoCompleteTextView view;
+        private ArrayAdapter<String> adapter;
+        private boolean pendingRequest = false;
+        private String lastCity = "";
+
+        public PoiTextWatcher(AutoCompleteTextView v, ArrayAdapter<String> a) {
+            view = v;
+            adapter = a;
+        }
+
+        private void checkRemoveButton() {
+            view.setCompoundDrawables(y, null,
+                    view.getText().toString().equals("") ? null : x, null);
+        }
+
+        @Override
+        public void onCityDataReady(Map<String, List<Entity>> data) {
+            pendingRequest = false;
+            List<Entity> result = data.get(Application.RESULT_SET_KEY);
+            List<String> strings = new ArrayList<>();
+
+            // Get POIs names
+            for (Entity entity : result) {
+                strings.add((String) entity.attributes.get("name"));
+                poiCoords.put((String) entity.attributes.get("name"), entity.location);
+            }
+
+            // Update autosuggest adapter
+            adapter = new ArrayAdapter<>(activity,
+                    android.R.layout.simple_dropdown_item_1line, strings);
+
+            view.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        private void executeSearch() {
+            CityDataRetriever retriever = new CityDataRetriever();
+            CityDataRequest req = new CityDataRequest();
+
+            Log.d(Application.TAG, "Going to retrieve data PointsOfInterest");
+            List<String> types = new ArrayList<String>();
+
+            types.add(Application.POI_TYPE);
+
+            req.types = types;
+
+            lastCity = city.getText().toString();
+            req.coordinates = cityCoords.get(lastCity);
+            req.radius = Application.POIS_RADIUS;
+            req.georel = "coveredBy";
+
+            pendingRequest = true;
+            retriever.setListener(this);
+            retriever.execute(req);
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            checkRemoveButton();
+
+            checkNextButton(view);
+
+            String tag = (String)view.getTag();
+            if(! new String("destPOI").equals(tag) || pendingRequest || lastCity.equals(city.getText().toString())) {
+                return;
+            }
+
+            // Nothing is done if text refines previous text
+            if(s.length() >= 4) {
+                executeSearch();
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
     }
 
     private class MyTextWatcher implements TextWatcher, ResultListener<List<String>> {
@@ -697,7 +848,6 @@ public class RouteActivity implements LocationListener {
                 executeSearch(lastKnownInput);
             }
         }
-
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
