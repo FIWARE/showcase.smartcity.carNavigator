@@ -1,15 +1,16 @@
 # FIWARE-Enabled Car Navigator for smart cities
 
-[![GPL license][license-image]][license-url]
+[![GPL license][license-image]][license-url] ![](https://nexus.lab.fiware.org/static/badges/statuses/deprecated.svg)
+[![Support badge](https://img.shields.io/badge/tag-fiware-orange.svg?logo=stackoverflow)](https://stackoverflow.com/questions/tagged/fiware)
 
 ## Introduction
 
-This repository contains code which implements an Android-based car navigator for smart cities . 
+This repository contains code which implemented an Android-based car navigator for smart cities . 
 The application connects [HERE Maps](https://maps.here.com/)
 technology with [OASC cities](http://oascities.org/) which expose real time data through the
 [FIWARE-NGSI APIs](http://fiware.github.io/context.Orion/api/v2/).
 
-This pilot has been presented at the
+This pilot was presented at the
 [SCEWC 2015](https://www.fiware.org/2015/11/20/porto-a-city-that-has-become-a-real-time-guide/) and
 [MWC 2016](http://www.gsma.com/connectedliving/wp-content/uploads/2016/01/MWC16-Conn-Living-Guide-web.pdf).
 
